@@ -1,6 +1,8 @@
 print('ONLY RUN WHEN INSIDE OF A /BIN/ FOLDER CONTAINING: BIGSTICK.X, SD.SPS, FP.SPS, GX1A.INT, USDB.INT')
 import subprocess
 import time
+import pandas as pd
+import numpy as np
 sps = str(input('where it is contained in your ./bin folder, enter .sps name (without the file extension) (fp or sd). \n SD.SPS = Oxygen 8 Core, FP.SPS = Ca 20 Core \n'))
 inputfile = str(input('where it is contained in your ./bin folder, enter .int name (without the file extension) (gx1a, usdb). \n check if you are using autoscaling by interpretation of the sign of the first constant in a .int \n'))
 if sps == 'fp':
@@ -18,7 +20,7 @@ if sps == 'sd':
         z = int(input())
 n = int(input('Valence Neutron # \n'))
 if sps =='fp':
-    while n > 20 or m < 2:
+    while n > 20 or n < 2:
         print('z value is out of bounds, re-enter \n')
         n = int(input())
 if sps == 'sd':
@@ -29,7 +31,7 @@ if z % n != 0:
     jz = 1
 else:
     jz = 0
-OUTPUT = str(input('file name, which will be given the suffix _{alphabetic}_{numerals} \n'))
+output = str(input('file name, which will be given the suffix _{alphabetic}_{numerals} \n'))
 nkeep = int(input('starting nkeep value \n'))
 while nkeep < 10:
         nkeep=int(input('You cannot start iterations with values approaching limit. reenter \n'))
@@ -43,6 +45,7 @@ if diffcharge <= 5:
         print('very high resolution... \n')
 maxnumiter = int(input('enter max # iterations (kept constant) \n be aware values sub ~100 give degenerate or low value cases \n'))
 for a in 'abcdefjhijklmnopqrstuvwxyz':
+    count=0
     b=0
     nkeep=10
     if n == 20 and z < 20:
@@ -55,7 +58,7 @@ for a in 'abcdefjhijklmnopqrstuvwxyz':
         else:
             jz = 0   
         arg1='n      ! menu choice'
-        arg2=f"{OUTPUT}_{a}_{b}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                "
+        arg2=f"{output}_{a}_{b}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                "
         arg3=f"{sps}    !  name of .sps file "
         arg4=f"           {z}           {n}  ! # of valence protons, neutrons "
         arg5=f"           {jz}        ! 2 x Jz of systems"
@@ -77,6 +80,40 @@ for a in 'abcdefjhijklmnopqrstuvwxyz':
             f.writelines(arg10+'\n')
         nkeep = nkeep + 10 
         subprocess.run(args=['./bigstick.x'], shell=True, text=True, input='i')
-        print(f"{output}_{a}_{b} finished, power napping")
-        time.sleep(3.14159) # :)
+        print(f"----------- {output}_{a}_{b} finished -----------")
+        #below is my goomba code
+        np1 = 0
+        np2 = 0
+        jumpst=0
+        reorth=0
+        diagonal=0
+        df = pd.read_table(f"{output}_{a}_{b}.log", header=None)
+        for x in range(0,df.size):
+            current = df.iloc[x].item()
+            if "Valence Z =" in current:
+                enter = df.iloc[x+1].item().strip()
+                np1 = enter
+            if "Valence N =" in current:
+                enter = df.iloc[x+1].item().strip()
+                np2 = enter        
+            if "Time to compute jumps :" in current:
+                enter = df.iloc[x+1].item().strip()
+                jumpst = enter 
+            if "  Time in reorthogonalization : " in current:
+                enter = df.iloc[x+1].item().strip()
+                reorth = enter        
+            if "  Time spent diagonalizing. : " in current:
+                enter = df.iloc[x+1].item().strip()
+                diagonal = enter
+            if "  Time to compute lanczos :" in current:
+                enter = df.iloc[x+1].item().strip()
+                lanczos = enter 
+        headers = ["Z", "N", "Jumptime", "reorthog", "diagonal", "lanczos"]
+        tiles = [np1,np2,jumpst,reorth,diagonal,lanczos]
+        hold = dict(zip(headers, tiles))
+        tall = pd.DataFrame(hold, index=[1])
+        tall.to_csv(f"tiled_{output}_{a}_{b}.csv")
+        print(f"tile {output}_{a}_{b} complete, nap time")
+        time.sleep(3.14159)
+        count=count+1
         b=b+1
