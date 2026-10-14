@@ -48,15 +48,7 @@ for a in 'abcdefjhijklmnopqrstuvwxyz':
     count=0
     b=0
     nkeep=10
-    if n == 20 and z < 20:
-        z=z+1
-    if n <= 20:
-        n=n+1 
-    while nkeep <= maxnkeep:
-        if z % n != 0:
-            jz = 1
-        else:
-            jz = 0   
+    while nkeep <= maxnkeep:  
         arg1='n      ! menu choice'
         arg2=f"{output}_{a}_{b}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                "
         arg3=f"{sps}    !  name of .sps file "
@@ -78,42 +70,67 @@ for a in 'abcdefjhijklmnopqrstuvwxyz':
             f.writelines(arg8+'\n')
             f.writelines(arg9+'\n')
             f.writelines(arg10+'\n')
-        nkeep = nkeep + 10 
-        subprocess.run(args=['./bigstick.x'], shell=True, text=True, input='i')
+
+        subprocess.run(args=['./bigstick-openmp.x'], shell=True, text=True, input='i')
+        print(f"ran with values OF \n Z = {z} \n N = {n} \n jz = {jz} \n nkeep = {nkeep} \n")
         print(f"----------- {output}_{a}_{b} finished -----------")
-        #below is my goomba code
+        time.sleep(1)
+        print('hope you had time to read that :p \n \n continuing to next in 3')
+        time.sleep(1)
+        print('continuing to tile step in 2')
+        time.sleep(1)
+        print('continuing to tile step in 1')
+        time.sleep(1)
+        print('tiling step cont')
         np1 = 0
         np2 = 0
         jumpst=0
         reorth=0
         diagonal=0
+        lanczos=0
         df = pd.read_table(f"{output}_{a}_{b}.log", header=None)
         for x in range(0,df.size):
             current = df.iloc[x].item()
             if "Valence Z =" in current:
-                enter = df.iloc[x+1].item().strip()
+                enter = int(df.iloc[x+1].item().strip())
                 np1 = enter
             if "Valence N =" in current:
-                enter = df.iloc[x+1].item().strip()
+                enter = int(df.iloc[x+1].item().strip())
                 np2 = enter        
             if "Time to compute jumps :" in current:
-                enter = df.iloc[x+1].item().strip()
+                enter = float(df.iloc[x+1].item().strip())
                 jumpst = enter 
             if "  Time in reorthogonalization : " in current:
-                enter = df.iloc[x+1].item().strip()
+                enter = float(df.iloc[x+1].item().strip())
                 reorth = enter        
             if "  Time spent diagonalizing. : " in current:
-                enter = df.iloc[x+1].item().strip()
+                enter = float(df.iloc[x+1].item().strip())
                 diagonal = enter
             if "  Time to compute lanczos :" in current:
-                enter = df.iloc[x+1].item().strip()
-                lanczos = enter 
-        headers = ["Z", "N", "Jumptime", "reorthog", "diagonal", "lanczos"]
-        tiles = [np1,np2,jumpst,reorth,diagonal,lanczos]
-        hold = dict(zip(headers, tiles))
-        tall = pd.DataFrame(hold, index=[1])
-        tall.to_csv(f"tiled_{output}_{a}_{b}.csv")
-        print(f"tile {output}_{a}_{b} complete, nap time")
+                enter = float(df.iloc[x+1].item().strip())
+                lanczos = enter
+        headers = ["Z", "N", "nkeep", "Jumptime", "reorthog", "diagonal", "lanczos"]
+        if lanczos > 0:
+            tiles = [z,n,nkeep,jumpst,reorth,diagonal,lanczos]   
+            hold = dict(zip(headers, tiles))
+            tall = pd.DataFrame(hold, index=[1])
+            tall.to_csv(f"tiled_{output}_{a}_{b}.csv")
+            print(f"read from {output}_{a}_{b}.log: \n Z = {np1} \n N = {np2} \n nkeep (from program) = {nkeep} \n jumptime = {jumpst} \n reorthog = {reorth} \n diagonal = {diagonal} \n and lanczos time = {lanczos}.")
+            if (np1 != z) or (np2 != n):
+                print(f"read in values are {np1}, {np2}. actual input values are {z}, {n}. why is this happening? IDK!") #Just to showcase it easier
+            print(f"tile of {output}_{a}_{b} complete, nap time")
+        else:
+            print(f"failed case, continuing")
         time.sleep(3.14159)
         count=count+1
         b=b+1
+        if n == 20 and z < 20:
+            z=z+1
+        if n < 20:
+            n=n+1
+        if z % n != 0:
+            jz = 1
+        else:
+            jz = 0 
+        
+        nkeep = nkeep + 10 
