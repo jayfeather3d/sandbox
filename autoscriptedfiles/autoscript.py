@@ -3,6 +3,8 @@ import subprocess
 import time
 import pandas as pd
 import numpy as np
+import re
+tallest = pd.DataFrame()
 sps = str(input('where it is contained in your ./bin folder, enter .sps name (without the file extension) (fp or sd). \n SD.SPS = Oxygen 8 Core, FP.SPS = Ca 20 Core \n'))
 inputfile = str(input('where it is contained in your ./bin folder, enter .int name (without the file extension) (gx1a, usdb). \n check if you are using autoscaling by interpretation of the sign of the first constant in a .int \n'))
 if sps == 'fp':
@@ -109,28 +111,36 @@ for a in 'abcdefjhijklmnopqrstuvwxyz':
             if "  Time to compute lanczos :" in current:
                 enter = float(df.iloc[x+1].item().strip())
                 lanczos = enter
-        headers = ["Z", "N", "nkeep", "Jumptime", "reorthog", "diagonal", "lanczos"]
+            if "iterations" in current and current != "  max iterations ":
+                dummy = df.iloc[x].item().strip()
+                enter = re.sub(r"[iterations]", "", dummy)
+                iterations = float(enter)
+        headers = ["Z", "N", "nkeep", "Jumptime", "reorthog", "diagonal", "iteration#", "lanczos"]
         if lanczos > 0:
-            tiles = [z,n,nkeep,jumpst,reorth,diagonal,lanczos]   
+            tiles = [z,n,nkeep,jumpst,reorth,diagonal,iterations,lanczos]   
             hold = dict(zip(headers, tiles))
             tall = pd.DataFrame(hold, index=[1])
             tall.to_csv(f"tiled_{output}_{a}_{b}.csv")
-            print(f"read from {output}_{a}_{b}.log: \n Z = {np1} \n N = {np2} \n nkeep (from program) = {nkeep} \n jumptime = {jumpst} \n reorthog = {reorth} \n diagonal = {diagonal} \n and lanczos time = {lanczos}.")
+            print(f"read from {output}_{a}_{b}.log: \n Z = {np1} \n N = {np2} \n nkeep (from program) = {nkeep} \n jumptime = {jumpst} \n reorthog = {reorth} \n diagonal = {diagonal} \n iterations of {iterations} \n and lanczos time = {lanczos}.")
             if (np1 != z) or (np2 != n):
-                print(f"read in values are {np1}, {np2}. actual input values are {z}, {n}. why is this happening? IDK!") #Just to showcase it easier
-            print(f"tile of {output}_{a}_{b} complete, nap time")
+                print(f"read in values are {np1}, {np2}. actual input values are {z}, {n}") #Just to showcase it easier
+            print(f"tile of {output}_{a}_{b} complete")
+            print("quilting...")
+            tallest = pd.concat([pd.read_csv(f"tiled_{output}_{a}_{b}.csv"), tallest])
+            tallest.to_csv("total.csv")
         else:
             print(f"failed case, continuing")
+
         time.sleep(3.14159)
-        count=count+1
-        b=b+1
-        if n == 20 and z < 20:
-            z=z+1
-        if n < 20:
-            n=n+1
-        if z % n != 0:
-            jz = 1
-        else:
-            jz = 0 
-        
         nkeep = nkeep + 10 
+        count=count+1
+    b=b+1
+    if n == 20 and z < 20:
+        z=z+1
+    if n < 20:
+        n=n+1
+    if z % n != 0:
+        jz = 1
+    else:
+        jz = 0 
+        
