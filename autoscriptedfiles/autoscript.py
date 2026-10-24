@@ -194,8 +194,17 @@ if place == "y":
     dependentvar = intake.drop(columns=['Unnamed: 0.1', 'Unnamed: 0','Z','N','nkeep'])
     model=LinearRegression()
     model.fit(independentvar,dependentvar)
-    exporter = pd.DataFrame.from_records(data=model.coef_, index=['Jumptime','reorthog','diagonal','iteration#','lanczos'], columns=["Z", "N", "nkeep"])
-    print(exporter)
+    exportercoef = pd.DataFrame.from_records(data=model.coef_, index=['Jumptime','reorthog','diagonal','iteration#','lanczos'], columns=["Z_coef", "N_coef", "nkeep_coef"])
+    exporterinter = pd.DataFrame(data=model.intercept_.tolist(), index=['Jumptime','reorthog','diagonal','iteration#','lanczos'], columns=["intercept"])
+    exporter = pd.concat([exportercoef, exporterinter], axis=1)
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!QUILT OUTPUT BELOW!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n\n\n", exporter)
+    print("""\\
+           __..--''``---....___   _..._    __
+ /// //_.-'    .-/";  `        ``<._  ``.''_ `. / // /
+///_.-' _..--.'_   [                    `( ) ) // //   You made it!
+/ (_..-' // (< _     ;_..__               ; `' / ///      :)    
+ / // // //  `-._,_)' // / ``--...____..-' /// / //
+""")
     exporter.to_csv(f"{namequestion}.csv")
 
 

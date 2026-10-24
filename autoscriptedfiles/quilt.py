@@ -53,8 +53,9 @@ while menusel != 'exit':
                     exportquestion = str(input("Export?\n y/N: "))
                     if exportquestion == "y":
                         namequestion = str(input("filename: "))
-                        exporter = pd.DataFrame(data=oracle, columns = ['Jumptime','reorthog','diagonal','iteration#','lanczos'])
-                        exporter.to_csv(f"{namequestion}.csv")
+                        exportercoef = pd.DataFrame.from_records(data=model.coef_, index=['Jumptime','reorthog','diagonal','iteration#','lanczos'], columns=["Z_coef", "N_coef", "nkeep_coef"])
+                        exporterinter = pd.DataFrame(data=model.intercept_.tolist(), index=['Jumptime','reorthog','diagonal','iteration#','lanczos'], columns=["intercept"])
+                        exporter = pd.concat([exportercoef, exporterinter], axis=1)
                         
         case "export":
             namequestion = str(input("filename: "))
