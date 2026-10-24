@@ -52,21 +52,28 @@ if debugq == "n":
         jz = 1
     else:
         jz = 0
+    maxZ = int(input("maximum Z value: "))
+    maxN = int(input("maximum N value: "))
     if sps == "fp":
-        maxZ = int(input("maximum Z value: "))
-        maxN = int(input("maximum N value: "))
         if maxZ > 20 or z < 2:
             print('your max value is out of bounds, re-enter ---:\n')
             maxZ = int(input("maximum Z value: "))
         if maxN > 20 or z < 2:
             print('your max value is out of bounds, re-enter ---:\n')
             maxN = int(input("maximum N value: "))
+    if sps == "sd":
+        if maxZ > 12 or z < 2:
+            print('your max value is out of bounds, re-enter ---:\n')
+            maxZ = int(input("maximum Z value: "))
+        if maxN > 12 or z < 2:
+            print('your max value is out of bounds, re-enter ---:\n')
+            maxN = int(input("maximum N value: "))
     output = str(input('file name, which will be given the suffix _{alphabetic}_{numerals} \n'))
     nkeepstar = int(input('starting nkeep value \n'))
     while nkeepstar < 10:
-            nkeepstar=int(input('You cannot start iterations with values approaching experimentally acquired limit.\n please re-enter ---:  \n'))
+        nkeepstar=int(input('You cannot start iterations with values approaching experimentally acquired limit.\n please re-enter ---:  \n'))
     maxnkeep = int(input('maximum nkeep value \n'))
-    while maxnkeep == nkeep:
+    while maxnkeep == nkeepstar:
             maxnkeep = int(input('values cannot be equal, reenter \n'))
     if maxnkeep <= 50:
             print('low maxnkeep value, be advised to enter an appropriate resolution, proceeding \n')
@@ -75,13 +82,11 @@ if debugq == "n":
             print('please consider that this is very high resolution...! \n')
     maxnumiter = int(input('enter max # iterations (kept constant) \n  be aware values sub ~100 give degenerate or low value cases. \n'))
     csvname = str(input('Please enter your output .csv name ---:'))
-globvarstoragen = n
-globvarstoragez = z
+    globvarstoragen = n
+    globvarstoragez = z
 for a in 'abcdefjhijklmnopqrstuvwxyz':
-    count=0
-    b=0
-    nkeep=nkeepstar
-    while z < maxZ:
+        b=0
+        nkeep=nkeepstar
         while nkeep <= maxnkeep:  
             arg1='n      ! menu choice'
             arg2=f"{output}_{a}_{b}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                "
@@ -104,7 +109,6 @@ for a in 'abcdefjhijklmnopqrstuvwxyz':
                 f.writelines(arg8+'\n')
                 f.writelines(arg9+'\n')
                 f.writelines(arg10+'\n')
-
             subprocess.run(args=['./bigstick-openmp.x'], shell=True, text=True, input='i')
             print(f"ran with values OF \n Z = {z} \n N = {n} \n jz = {jz} \n nkeep = {nkeep} \n")
             print(f"--------------------------------- {output}_{a}_{b} finished ---------------------------------")
@@ -165,6 +169,7 @@ for a in 'abcdefjhijklmnopqrstuvwxyz':
                 # or other subroutines inside of bigstick
                 # my only guess is that its a factor of some other point where np input is reset which passes before np(1) and np(2) are written to console
                 print(f"---------------------- tile of {output}_{a}_{b} complete ----------------------\n")
+
                 print("--------------------------------  quilting... -----------------------------------\n")
                 
                 tallest = pd.concat([pd.read_csv(f"tiled_{output}_{a}_{b}.csv"), tallest])
@@ -173,8 +178,9 @@ for a in 'abcdefjhijklmnopqrstuvwxyz':
             else:
                 print(f"!+!+!+!+!+!+!+!+!+! \n !+!+!+!+!+!+!+!+!+! \n !+!+!+!+!+!+!+!+!+! \n failed case!!! \n continuing to next set \n !+!+!+!+!+!+!+!+!+! \n !+!+!+!+!+!+!+!+!+! \n !+!+!+!+!+!+!+!+!+!\n") 
             nkeep=nkeep + 10 
-            count=count+1
-        b=b+1
+            b=b+1
+        if z == maxZ:
+            break
         if n == maxN and z < maxZ:
             z=z+1
             n=globvarstoragen
