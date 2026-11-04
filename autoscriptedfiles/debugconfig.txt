@@ -1,0 +1,16 @@
+y
+debugquilt
+fp
+gx1a
+0
+2
+2
+3
+3
+10
+20
+5
+debug
+5000
+debugcsv
+
