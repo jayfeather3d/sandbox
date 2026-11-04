@@ -11,7 +11,7 @@ print("""-----------------------------------------------------------------------
                             AUTOSCRIPT . PY launch menu:
                     TO RUN DEBUG FILE: enter "d"
                     TO CONTINUE MENU: enter "n"
-                    
+                    TO RUN ORACLE: enter "o"
         """                                                                                                   
       
       )
@@ -98,8 +98,7 @@ if debugq == "n":
     csvname = str(input('Please enter your output .csv name ---:'))
     globvarstoragen = n
     globvarstoragez = z
-if skiptoend == "n":
-    for a in 'abcdefjhijklmnopqrstuvwxyz':
+    for a in 'abcdefjhijklmnopqrstuvwxyzabcdefjhijklmnopqrstuvwxyzabcdefjhijklmnopqrstuvwxyzabcdefjhijklmnopqrstuvwxyzabcdefjhijklmnopqrstuvwxyz':
         b=0
         nkeep=nkeepstar
         while nkeep <= maxnkeep:  
@@ -172,8 +171,6 @@ if skiptoend == "n":
                 tiles = [z,n,V,BASIS,nkeep,tt,reorth,diagonal,iterations,lanczos]
                 hold = dict(zip(headers, tiles))
                 tall = pd.DataFrame(hold, index=[1])
-                #tall.to_csv(f"tiled_{output}_{a}_{b}.csv")
-                #unfortunately this makes a lot of files...
                 print("\n \n ---------------------- output csv written ---------------------- \n \n")
                 print(f"read from {output}_{a}_{b}.log: \n Z = {np1} \n N = {np2} and a sum V = {V} \n nkeep (from program) = {nkeep} \n totaltime = {tt} \n reorthog = {reorth} \n diagonal = {diagonal} \n iterations of {iterations} \n and lanczos time = {lanczos}.")
                 if (np1 != z) or (np2 != n):
@@ -186,7 +183,7 @@ if skiptoend == "n":
 
                 print("--------------------------------  quilting... -----------------------------------\n")
                 
-                tallest = pd.concat([pd.read_csv(f"tiled_{output}_{a}_{b}.csv"), tallest])
+                tallest = pd.concat([tallest,tall],axis=0)
                 tallest.to_csv(f"{csvname}_QUILT.csv")
                 print("\n \n ---------------------- total csv written ---------------------------------- \n \n")
             else:
@@ -204,17 +201,33 @@ if skiptoend == "n":
             jz = 1
         else:
             jz = 0 
+if debugq == "o":
+    place="y"
+    weavein = str(input("would you like to take in multiple quilts into one file (replicates the main quilt)? y/n \n -----:"))
+    if weavein == "y":
+        firstfile = str(input("your first quilt files name  :"))
+        secondfile = str(input("your second quilt files name :"))
+        together = pd.concat([pd.read_csv(f"{firstfile}_QUILT.csv"),pd.read_csv(f"{secondfile}_QUILT.csv")], axis=0)
+        anymore = str(input("would you like to include another file (weaved together main quilt + 3rd new quilt)? y/n \n ------:"))
+        while anymore == "y":
+            secondfile = str(input("your next quilt files name :"))
+            together = pd.concat([together, pd.read_csv(f"{secondfile}_QUILT.csv")])
+            anymore = str(input("would you like to include another file (weaved together main quilt + 3rd new quilt)? y/n \n ------:"))
+        csvname = str(input("your csvname for output:"))
+        together.to_csv(f"{csvname}_QUILT.csv")
+    if weavein == "n":
+        csvname = str(input("your TOTAL quilt files name: "))
 if place == "y":
     from sklearn.linear_model import LinearRegression
     import sys
     intake = pd.read_csv(f"{csvname}_QUILT.csv")
-    VIndependentVariables = intake.drop(columns=['Unnamed: 0.1', 'Unnamed: 0','Z','N','BASIS','totaltime','reorthog','diagonal','iteration#','lanczos'])
-    SIndependentVariables = intake.drop(columns=['Unnamed: 0.1', 'Unnamed: 0','BASIS','V','totaltime','reorthog','diagonal','iteration#','lanczos'])
+    VIndependentVariables = intake.drop(columns=['Unnamed: 0.2', 'Unnamed: 0.1', 'Unnamed: 0','Z','N','BASIS','totaltime','reorthog','diagonal','iteration#','lanczos'])
+    SIndependentVariables = intake.drop(columns=['Unnamed: 0.2', 'Unnamed: 0.1', 'Unnamed: 0','BASIS','V','totaltime','reorthog','diagonal','iteration#','lanczos'])
     #SIn = Z,N,NK
     #Vin = V,Nk
-    BasisNkIn = intake.drop(columns=['Unnamed: 0.1', 'Unnamed: 0','Z','N','V','totaltime','reorthog','diagonal','iteration#','lanczos'])
+    BasisNkIn = intake.drop(columns=['Unnamed: 0.2', 'Unnamed: 0.1', 'Unnamed: 0','Z','N','V','totaltime','reorthog','diagonal','iteration#','lanczos'])
     #BasisNkIn = Only basis, nk
-    DependentVariables = intake.drop(columns=['Unnamed: 0.1', 'Unnamed: 0','Z','N','V','BASIS','nkeep'])
+    DependentVariables = intake.drop(columns=['Unnamed: 0.2', 'Unnamed: 0.1', 'Unnamed: 0','Z','N','V','BASIS','nkeep'])
     #seer = Sin -> Z & N + nk linear
     #mage = Vin -> V + nk linear
     #heir = Bin -> basis + nk linear
@@ -327,6 +340,6 @@ totalout.to_csv(f'{csvname}_WEAVE.csv', sep=",", header=HEAD)
 
 #Now we take it back in :) this is just easier than pandas reindex nonsense
 cryostat = pd.read_csv(f'{csvname}_WEAVE.csv')
-mudkip = pd.concat([quilt,cryostat], axis=1)
+mudkip = pd.concat([quilt.drop(columns = ['Unnamed: 0.2', 'Unnamed: 0.1', 'Unnamed: 0']),cryostat], axis=1)
 print(mudkip)
 mudkip.to_csv(f'{csvname}_TOTAL_OUT_real.csv', sep=",")
